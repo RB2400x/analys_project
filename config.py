@@ -24,7 +24,7 @@ if DATA_DIR is None:
     # Если не нашли, создаем в текущей папке
     DATA_DIR = BASE_DIR / "data"
     DATA_DIR.mkdir(exist_ok=True)
-    print(f"⚠️ Создана папка для данных: {DATA_DIR}")
+    print(f" Создана папка для данных: {DATA_DIR}")
     print(f"   Поместите туда файлы cities_historical_2015_2024.csv и cities_forecast_2024_2039.csv")
 
 REPORTS_DIR = BASE_DIR / "reports"
@@ -61,7 +61,7 @@ POPULATION_THRESHOLDS = {
     'town': 50_000
 }
 
-print(f"\n📁 Конфигурация загружена:")
+print(f"\n Конфигурация загружена:")
 print(f"   DATA_DIR: {DATA_DIR}")
 print(f"   HISTORICAL_FILE: {HISTORICAL_FILE}")
 print(f"   FORECAST_FILE: {FORECAST_FILE}")
