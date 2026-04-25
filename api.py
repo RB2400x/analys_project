@@ -14,7 +14,6 @@ from task3_ai_analytics import AIAnalytics
 from typing import List, Optional
 from pydantic import BaseModel
 
-import json
 import numpy as np
 
 
@@ -75,21 +74,28 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# 2.2. Добавляем CORS (пока разрешим всё для тестирования)
+# CORS middleware - ограничиваем для локальной разработки
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # при разработке можно звёздочку, потом ограничим
+    allow_origins=[
+        "http://localhost:3000",   # React/Vite разработка
+        "http://localhost:5173",   # Vite по умолчанию
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:5173",
+        "http://localhost:5500",   # Live Server
+        "http://127.0.0.1:5500",
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST"],  # Ограничиваем методы
+    allow_headers=["Content-Type", "Authorization"],
 )
 
-# 2.3. Тестовый эндпоинт
+# Тестовый эндпоинт
 @app.get("/ping")
 async def ping():
     return {"status": "ok", "message": "API работает"}
 
-# 2.4. Корневой эндпоинт
+# Корневой эндпоинт
 @app.get("/")
 async def root():
     return {
@@ -224,7 +230,7 @@ async def get_forecast(
 async def compare_forecasts(request: MultiForecastRequest):
     """
     Сравнить прогнозы для нескольких городов.
-    Принимает JSON: {"cities": ["Москва", "СПб"], "horizon": 10}
+    Принимает JSON: {"cities": ["Москва", "Санкт-Петербург"], "horizon": 10}
     """
     results = {}
     for city in request.cities:
