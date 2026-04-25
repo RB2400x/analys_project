@@ -3,6 +3,7 @@ API для аналитической системы демографии РФ
 """
 
 from fastapi import FastAPI
+from fastapi import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 # Импортируем существующие классы аналитики
@@ -12,6 +13,21 @@ from task3_ai_analytics import AIAnalytics
 
 from typing import List, Optional
 from pydantic import BaseModel
+
+class ForecastResponse(BaseModel):
+    city: str
+    last_year: int
+    last_population: int
+    horizon: int
+    future_years: List[int]
+    predictions: List[float]
+    lower_bound: List[float]
+    upper_bound: List[float]
+    metrics: Optional[dict] = None
+
+class MultiForecastRequest(BaseModel):
+    cities: List[str]
+    horizon: int = 10
 
 # Создаём экземпляры классов (они загрузят данные при старте)
 monitor = PopulationMonitor()
@@ -147,3 +163,89 @@ async def get_regional_population():
     # Метод get_all_regions возвращает список словарей вида {'region': ..., 'population': ...}
     # Если такого метода нет в классе PopulationMonitor, реализуем вручную.
     return regions
+
+
+# ==================== Эндпоинты для прогнозирования ====================
+
+@app.get("/api/forecast/{city_name}", response_model=ForecastResponse)
+async def get_forecast(
+        city_name: str,
+        horizon: int = 10,
+        include_metrics: bool = True
+):
+    """
+    Получить прогноз численности населения для города.
+    - horizon: горизонт прогноза (от 1 до 15 лет, по умолчанию 10)
+    - include_metrics: включить метрики качества прогноза
+    """
+    if horizon < 1 or horizon > 15:
+        raise HTTPException(status_code=400, detail="Горизонт прогноза должен быть от 1 до 15 лет")
+
+    forecast = forecaster.forecast_city(city_name, horizon=horizon)
+    if forecast is None:
+        raise HTTPException(status_code=404,
+                            detail=f"Город '{city_name}' не найден или недостаточно данных для прогноза")
+
+    # Преобразуем numpy типы в стандартные Python
+    response = {
+        "city": forecast['city'],
+        "last_year": forecast['last_year'],
+        "last_population": forecast['last_population'],
+        "horizon": horizon,
+        "future_years": [int(y) for y in forecast['future_years']],
+        "predictions": [float(p) for p in forecast['predictions']],
+        "lower_bound": [float(lb) for lb in forecast['lower_bound']],
+        "upper_bound": [float(ub) for ub in forecast['upper_bound']],
+    }
+
+    if include_metrics:
+        metrics = forecaster.calculate_metrics(forecast)
+        if metrics:
+            response["metrics"] = metrics
+
+    return response
+
+
+@app.post("/api/forecast/compare")
+async def compare_forecasts(request: MultiForecastRequest):
+    """
+    Сравнить прогнозы для нескольких городов.
+    Принимает JSON: {"cities": ["Москва", "СПб"], "horizon": 10}
+    """
+    results = {}
+    for city in request.cities:
+        forecast = forecaster.forecast_city(city, horizon=request.horizon)
+        if forecast:
+            results[city] = {
+                "future_years": [int(y) for y in forecast['future_years']],
+                "predictions": [float(p) for p in forecast['predictions']],
+                "last_population": forecast['last_population']
+            }
+        else:
+            results[city] = {"error": "Недостаточно данных"}
+    return {"horizon": request.horizon, "results": results}
+
+
+@app.get("/api/forecast/scenarios/{city_name}")
+async def get_forecast_scenarios(city_name: str, horizon: int = 15):
+    """
+    Получить прогноз с тремя сценариями (оптимистичный, базовый, пессимистичный).
+    """
+    scenarios = forecaster.forecast_with_scenarios(city_name, horizon=horizon)
+    if scenarios is None:
+        raise HTTPException(status_code=404, detail=f"Город '{city_name}' не найден")
+
+    # Преобразуем данные для удобства фронтенда
+    return {
+        "city": scenarios['city'],
+        "last_population": scenarios['last_population'],
+        "last_year": scenarios['last_year'],
+        "scenarios": {
+            name: {
+                "rate": sc['rate'],
+                "future_years": [int(y) for y in sc['future_years']],
+                "predictions": sc['predictions']
+            }
+            for name, sc in scenarios['scenarios'].items()
+        }
+    }

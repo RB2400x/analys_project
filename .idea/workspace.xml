@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="9f749873-b4a5-4e17-9887-4f42abccf040" name="Changes" comment="Добавление FastAPI и CORS">
+    <list default="true" id="9f749873-b4a5-4e17-9887-4f42abccf040" name="Changes" comment="Добавление эндпоинтов">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/api.py" beforeDir="false" afterPath="$PROJECT_DIR$/api.py" afterDir="false" />
     </list>
@@ -105,7 +105,15 @@
       <option name="project" value="LOCAL" />
       <updated>1777088224637</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Добавление эндпоинтов">
+      <option name="closed" value="true" />
+      <created>1777090056900</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1777090056900</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -134,6 +142,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="готовый проект" />
     <MESSAGE value="Добавление FastAPI и CORS" />
-    <option name="LAST_COMMIT_MESSAGE" value="Добавление FastAPI и CORS" />
+    <MESSAGE value="Добавление эндпоинтов" />
+    <option name="LAST_COMMIT_MESSAGE" value="Добавление эндпоинтов" />
   </component>
 </project>
